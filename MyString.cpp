@@ -49,36 +49,19 @@ struct String {
         return *this;
     }
 
-    std::istream& operator>>(std::istream &is) { //helps to safely redirect object to another string
-        delete[] str;
-        char c = 0;
-        size_t i = 0;
-        resize(100);
-        while (c != ' ' && c != '\n' && c != '\0') {
-            is >> c;
-            str[i] = c;
-            ++i;
-            if (i >= _size) resize(_size * 1.5);
-        }
-        resize(i);
-        str[i] = '\0';
-    }
-
-    std::istream& operator<<(std::istream& is) const { //helps to safely redirect object to another string
-        char c = 0;
-        char* answ = new char[100];
-        while (c != ' ' && c != '\n' && c != '\0') {
-            is >> c;
-
-        }
+    String& operator+=(String const& other) { //append via operator+=
+        append(other);
+        return *this;
     }
 
     void append(const String& other) { //append another String at the end (works with const char* via corresponding construcor)
         size_t old_size = _size;
         resize(_size + other._size);
-        for (int i = old_size, j = 0; i < _size + 1; i++, j++)str[i] = other.str[j];
+        for (size_t i = old_size, j = 0; i < _size + 1; i++, j++)str[i] = other.str[j];
     }
 
+    friend std::istream& operator >>(std::istream& is, String& s); //we declare input and output operators as friendly, 
+    friend std::ostream& operator <<(std::ostream& stream, String const& s); //so we can have acces to private class fields
 private:
     size_t _size;
     char* str;
@@ -94,3 +77,27 @@ private:
         str = new_string;
     }
 };
+
+String operator+(String s1, String const& s2) { //append via operator+, appends to the LEFT argument
+    return s1 += s2;
+}
+
+std::istream& operator>>(std::istream& is, String& s) { //input operator
+    char c = 'a';
+    size_t i = 0;
+    s.resize(100);
+    while (is.get(c)) {
+        if (c == ' ' || c == '\n' || c == '\0')break;
+        s.str[i] = c;
+        ++i;
+        if (i >= s._size) s.resize(s._size * 1.5);
+    }
+    s.resize(i);
+    s.str[i] = '\0';
+    return is;
+}
+
+std::ostream& operator<<(std::ostream& os, String const& s) { //output operator
+    os << s.str;
+    return os;
+}
